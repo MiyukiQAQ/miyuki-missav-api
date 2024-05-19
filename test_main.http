@@ -1,3 +1,11 @@
+POST http://localhost:8000/api/movie/url
+Content-Type: application/json
+
+{
+  "url": "https://missav.com/en/okk-070"
+}
+
+###
 GET http://127.0.0.1:8000/api/movies
 Accept: application/json
 

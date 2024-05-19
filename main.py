@@ -42,8 +42,6 @@ def download_from_queue():
             serial = download_info['serial']
             query = {"serial": serial}
             download_status = {
-                'serial': serial,
-                'url': url,
                 'status': 'downloading',
                 'startTime': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'endTime': None
@@ -141,6 +139,7 @@ def time_wait():
 @app.post("/api/movie/{serial}/download")
 async def download_movie(serial: str, background_tasks: BackgroundTasks):
     movie_collection = db["movie"]
+    download_status_collection = db["download_status"]
     movie = movie_collection.find_one({"serial": {"$eq": serial}})
     url = movie["url"]
     download_queue_collection = db["download_queue"]
@@ -148,7 +147,16 @@ async def download_movie(serial: str, background_tasks: BackgroundTasks):
         "serial": serial,
         "url": url
     }
-    query = {"serial": serial}
     update_data = {"$set": download_info}
+    query = {"serial": serial}
+    download_status = {
+        'serial': serial,
+        'url': url,
+        'status': 'waiting',
+        'startTime': None,
+        'endTime': None
+    }
+    update_data_download_status = {"$set": download_status}
+    download_status_collection.update_one(query, update_data_download_status, upsert=True)
     download_queue_collection.update_one(query, update_data, upsert=True)
     return True
